@@ -1,0 +1,75 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract SupplyChain {
+    address public owner;
+    mapping(address => bool) public authorized;
+
+    struct Product {
+        string name;
+        string ingredients;
+        string origin;
+        uint256 weight;
+        uint256 cost;
+        uint256 productionDate;
+        uint256 certificationDate;
+        uint256 transitDate;
+        uint256 storageDate;
+        uint256 transitDuration; // Geçen süre (saniye)
+        uint256 shippingCost; // Taşıma ücreti
+        string location; // Taşıma lokasyonu
+    }
+
+    function addAuthorized(address _user) public onlyOwner {
+        authorized[_user] = true;
+    }
+
+    function removeAuthorized(address _user) public onlyOwner {
+        require(_user != owner, "Owner cannot be removed from authorized");
+        authorized[_user] = false;
+    }
+
+    function addProduct(string memory _name, string memory _ingredients, string memory _origin, uint256 _weight, uint256 _cost) public onlyAuthorized {
+        productCount++;
+        products[productCount] = Product({
+            name: _name,
+            ingredients: _ingredients,
+            origin: _origin,
+            weight: _weight,
+            cost: _cost,
+            productionDate: block.timestamp,
+            certificationDate: 0,
+            transitDate: 0,
+            storageDate: 0,
+            transitDuration: 0,
+            shippingCost: 0,
+            location: ""
+        });
+    }
+
+    function certifyProduct(uint256 _productId) public onlyAuthorized {
+        require(_productId <= productCount, "Invalid product ID");
+        require(products[_productId].certificationDate == 0, "Product is already certified");
+        products[_productId].certificationDate = block.timestamp;
+    }
+
+    function updateTransitInfo(uint256 _productId, uint256 _transitDate, uint256 _transitDuration, uint256 _shippingCost, string memory _location) public onlyAuthorized {
+        require(_productId <= productCount, "Invalid product ID");
+        require(products[_productId].certificationDate != 0, "Product must be certified before updating transit info");
+        products[_productId].transitDate = _transitDate;
+        products[_productId].transitDuration = _transitDuration;
+        products[_productId].shippingCost = _shippingCost;
+        products[_productId].location = _location;
+    }
+
+    function updateStorageInfo(uint256 _productId, uint256 _storageDate) public onlyAuthorized {
+        require(_productId <= productCount, "Invalid product ID");
+        require(products[_productId].transitDate != 0, "Product must have transit info before updating storage info");
+        products[_productId].storageDate = _storageDate;
+    }
+
+    function getProduct(uint256 _productId) public view returns (Product memory) {
+        require(_productId <= productCount, "Invalid product ID");
+        return products[_productId];
+    }
+}
