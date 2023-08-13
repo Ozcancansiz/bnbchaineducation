@@ -1,0 +1,30 @@
+const Web3 = require('web3');
+const web3 = new Web3('https://rinkeby.infura.io/v3/YOUR_INFURA_PROJECT_ID');
+
+const contractAddress = 'YOUR_CONTRACT_ADDRESS'; // SupplyChain akıllı sözleşmesinin adresi
+const contractABI = [
+  // SupplyChain akıllı sözleşmesi ABIsini buraya ekleyin
+];
+
+const supplyChainContract = new web3.eth.Contract(contractABI, contractAddress);
+
+async function main() {
+  const accounts = await web3.eth.getAccounts();
+  const owner = accounts[0]; // Sözleşmenin sahibi olarak varsayalım
+
+  // SupplyChain sözleşmesine yetkilendirilmiş kullanıcı eklemek için:
+  await supplyChainContract.methods.addAuthorized('YETKILININ_ADRESI').send({ from: owner });
+
+  // SupplyChain sözleşmesine ürün eklemek için:
+  await supplyChainContract.methods.addProduct('Ürün Adı', 'Malzemeler', 'Menşei', 100, 50).send({ from: owner });
+
+  // SupplyChain sözleşmesinden ürün bilgilerini getirmek için:
+  const productId = 1; // Örnek olarak ilk ürünü varsayalım
+  const productInfo = await supplyChainContract.methods.getProduct(productId).call();
+  console.log('Ürün Bilgileri:', productInfo);
+
+  // Diğer işlemler (sertifikalandırma, taşıma bilgileri güncelleme, depolama bilgileri güncelleme) için de benzer şekilde işlem yapabilirsiniz.
+
+}
+
+main();
